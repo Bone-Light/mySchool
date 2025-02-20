@@ -7,3 +7,16 @@ spring:
     username: root
     password: 15813695017
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+  security:
+    key: 'asdfas'
+    expire: 7
+    filter:
+      order: -100 #Spring Security ????解决
+    user:
+      name: 'mi'   #???????
+      password: '123456'   #??????
+      roles: #???????
+        - admin
+        - user
+
