@@ -10,7 +10,7 @@ spring:
 
   security:
     key: 'asdfas'
-    expire: 7
+    expire: 7000
     filter:
       order: -100 #Spring Security ????解决
     user:
@@ -19,4 +19,8 @@ spring:
       roles: #???????
         - admin
         - user
-
+#  data:
+#    redis:
+#      port: 6379
+#      host: 192.168.10.3
+#      database: 0

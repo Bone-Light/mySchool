@@ -17,6 +17,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -33,9 +34,6 @@ public class SecurityConfiguration {
 
     @Resource
     private JwtAuthenticationFilter jwtAuthenticationFilter;
-
-    @Resource
-
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -111,17 +109,18 @@ public class SecurityConfiguration {
         response.setContentType("application/json;charset=utf-8");
         PrintWriter writer = response.getWriter();
         String authorization = request.getHeader("Authorization");
-        if(authorization != null && authorization.startsWith("Bearer ")) {
+       if(utils.invalidate(authorization)) {
+           writer.write(RestBean.success("退出登录成功").asJsonString());
+       } else {
+           writer.write(RestBean.failure(400, "退出登录失败").asJsonString());
+       }
+    }
 
-            String token = authorization.substring(7);
-            //将Token加入黑名单
-            if(utils.invalidate(token)) {
-                //只有成功加入黑名单才会退出成功
-                writer.write(RestBean.success("退出登录成功").asJsonString());
-                return;
-            }
-        }
-        writer.write(RestBean.failure(400, "退出登录失败").asJsonString());
+    public void onAccessDeny(HttpServletRequest request,
+                             HttpServletResponse response,
+                             AuthenticationException exception) throws IOException {
+        response.setContentType("application/json;charset=utf-8");
+        response.getWriter().write(RestBean.forbidden(exception.getMessage()).asJsonString());
     }
 
 //    void onAuthenticationFailure(HttpServletRequest request,

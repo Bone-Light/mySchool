@@ -157,6 +157,15 @@
             <artifactId>java-jwt</artifactId>
             <version>4.3.0</version>
         </dependency>
+        <!--19.Redis交互模块    -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

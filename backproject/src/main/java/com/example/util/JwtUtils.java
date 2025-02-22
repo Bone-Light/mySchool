@@ -6,13 +6,16 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Component
 public class JwtUtils {
@@ -23,6 +26,8 @@ public class JwtUtils {
     @Value("${spring.security.expire}")
     int expire;
 
+    @Resource
+    StringRedisTemplate stringRedisTemplate;
 
     public HashSet<String> blackList = new HashSet<>();
 
@@ -32,10 +37,8 @@ public class JwtUtils {
         Calendar calendar = Calendar.getInstance();
         Date now = calendar.getTime();
         calendar.add(Calendar.HOUR, expire);
-        int userid = 18;
         return JWT.create()
                 .withJWTId(UUID.randomUUID().toString())
-                .withClaim("id", userid)
                 .withClaim("name", user.getUsername())  //配置JWT自定义信息
                 .withClaim("authorities", user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList())
                 .withExpiresAt(calendar.getTime())  //设置过期时间
@@ -43,18 +46,32 @@ public class JwtUtils {
                 .sign(algorithm);   //最终签名
     }
     //加入黑名单方法
-    public boolean invalidate(String token){
+    public boolean invalidate(String headerToken){
+        String token = this.convertToken(headerToken);
+        if(token == null) return false;
         Algorithm algorithm = Algorithm.HMAC256(key);
-        JWTVerifier jwtVerifier = JWT.require(algorithm).build();
-        try {
-            DecodedJWT verify = jwtVerifier.verify(token);
-            Map<String, Claim> claims = verify.getClaims();
-            //取出UUID丢进黑名单中
-            return blackList.add(verify.getId());
-        } catch (JWTVerificationException e) {
+        JWTVerifier verifier = JWT.require(algorithm).build();
+        try{
+            DecodedJWT jwt = verifier.verify(token);
+            String id = jwt.getId();
+            return deleteToken(id, jwt.getExpiresAt());
+        } catch (JWTVerificationException e){
             return false;
         }
     }
+
+    private boolean isInvalidToken(String uuid){
+        return stringRedisTemplate.hasKey(Const.JWT_BLACK_LIST + uuid);
+    }
+
+    private boolean deleteToken(String uuid, Date time){
+        if(this.isInvalidToken(uuid)) return false;
+        Date now = new Date();
+        long expire = Math.max(time.getTime() - now.getTime(), 0);
+        stringRedisTemplate.opsForValue().set(Const.JWT_BLACK_LIST + uuid, "",expire, TimeUnit.MICROSECONDS);
+        return true;
+    }
+
 
     public DecodedJWT resolveJwt(String headerToken){
         String token = this.convertToken(headerToken);
@@ -63,6 +80,7 @@ public class JwtUtils {
         JWTVerifier jwtVerifier = JWT.require(algorithm).build();
         try {
             DecodedJWT verify = jwtVerifier.verify(token);
+            if(this.isInvalidToken(verify.getId())) return null;
             Date expiration = verify.getExpiresAt();
             return new Date().after(expiration) ? null : verify;
         } catch (JWTVerificationException e) {
