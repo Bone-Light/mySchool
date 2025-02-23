@@ -3,13 +3,15 @@ package com.example.config;
 
 
 import com.example.entity.RestBean;
+import com.example.entity.dto.Account;
 import com.example.entity.vo.response.AuthorizeVO;
 import com.example.filter.JwtAuthenticationFilter;
+import com.example.service.AccountService;
 import com.example.util.JwtUtils;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.AccessDeniedException;
@@ -19,6 +21,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -34,6 +38,9 @@ public class SecurityConfiguration {
 
     @Resource
     private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @Resource
+    private AccountService accountService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -81,6 +88,12 @@ public class SecurityConfiguration {
                 .build();
     }
 
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        // 使用 BCrypt 作为默认编码器
+        return new BCryptPasswordEncoder();
+    }
+
     public void handleProcess(HttpServletRequest request,
                                HttpServletResponse response,
                                Object exceptionOrAuthentication) throws IOException {
@@ -93,10 +106,15 @@ public class SecurityConfiguration {
         } else if(exceptionOrAuthentication instanceof Authentication authentication){
             User user = (User) authentication.getPrincipal();
             String token = utils.createJwt(user);
-            AuthorizeVO vo = new AuthorizeVO();
+            Account account = accountService.findAccountByNameOrEmail(user.getUsername());
+
+            AuthorizeVO vo = account.asViewObject(AuthorizeVO.class, v -> {
+                v.setToken(token);
+                v.setExpire(utils.expireTime());
+            });
+//            BeanUt ils.copyProperties(account, vo);
+
             vo.setExpire(utils.expireTime());
-            vo.setRole("大民");
-            vo.setUsername(user.getUsername());
             vo.setToken(token);
             writer.write(RestBean.success(vo).asJsonString());
 //                        writer.write(RestBean.success(authentication.getName()).asJsonString());
