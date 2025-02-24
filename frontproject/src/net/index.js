@@ -72,9 +72,34 @@ function login(username, password, remember, success, failure = defaultFailure) 
         'Content-Type' : "application/x-www-form-urlencoded"
     }, (data) => {
         storeAccessToken(data.token, remember, data.expire);
-        ElMessage.success(`登录成功, 欢迎 ${data.message} 来到我们的系统`);
+        ElMessage.success(`登录成功, 欢迎 ${username} 来到我们的系统`);
         success(data);
     },failure);
 }
 
-export {login}
+function get(url, success, failure = defaultFailure) {
+    internalGet(url, accessHeader(), success, failure);
+}
+
+function post(url, data, success, failure = defaultFailure) {
+    internalPost(url, data, accessHeader() , success, failure)
+}
+
+function accessHeader(){
+    const token = getAccessToken();
+    return token ? {'Authorization': `Bearer ${getAccessToken()}` } : {};
+}
+
+function logout(success, failure = defaultFailure) {
+    get('api/auth/logout', ()=>{
+        deleteAccessToken();
+        ElMessage.success('退出登录成功，欢迎再次使用');
+        success();
+    }, failure);
+}
+
+function unauthorized(success, failure = defaultFailure) {
+    return !getAccessToken();
+}
+
+export {login, logout, get, post, unauthorized}
