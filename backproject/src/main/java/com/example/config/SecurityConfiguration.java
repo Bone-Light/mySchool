@@ -55,20 +55,20 @@ public class SecurityConfiguration {
                     conf.failureHandler(this::handleProcess);
                     conf.permitAll();
                 })
-                .cors(conf -> {
-                    CorsConfiguration cors = new CorsConfiguration();
-                    //添加前端站点地址，这样就可以告诉浏览器信任了
-                    cors.addAllowedOrigin("http://localhost:8080");
-                    //虽然也可以像这样允许所有 cors.addAllowedOriginPattern("*");
-                    //但是这样并不安全，我们应该只许可给我们信任的站点
-                    cors.setAllowCredentials(true);  //允许跨域请求中携带Cookie
-                    cors.addAllowedHeader("*");   //其他的也可以配置，为了方便这里就 * 了
-                    cors.addAllowedMethod("*");
-                    cors.addExposedHeader("*");
-                    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-                    source.registerCorsConfiguration("/**", cors);  //直接针对于所有地址生效
-                    conf.configurationSource(source);
-                })
+//                .cors(conf -> {
+//                    CorsConfiguration cors = new CorsConfiguration();
+//                    //添加前端站点地址，这样就可以告诉浏览器信任了
+//                    cors.addAllowedOrigin("http://localhost:8080");
+//                    //虽然也可以像这样允许所有 cors.addAllowedOriginPattern("*");
+//                    //但是这样并不安全，我们应该只许可给我们信任的站点
+//                    cors.setAllowCredentials(true);  //允许跨域请求中携带Cookie
+//                    cors.addAllowedHeader("*");   //其他的也可以配置，为了方便这里就 * 了
+//                    cors.addAllowedMethod("*");
+//                    cors.addExposedHeader("*");
+//                    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//                    source.registerCorsConfiguration("/**", cors);  //直接针对于所有地址生效
+//                    conf.configurationSource(source);
+//                })
                 .csrf(AbstractHttpConfigurer::disable)
                 .exceptionHandling(conf -> {
                     //配置授权相关异常处理器
