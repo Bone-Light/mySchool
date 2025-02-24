@@ -55,20 +55,6 @@ public class SecurityConfiguration {
                     conf.failureHandler(this::handleProcess);
                     conf.permitAll();
                 })
-//                .cors(conf -> {
-//                    CorsConfiguration cors = new CorsConfiguration();
-//                    //添加前端站点地址，这样就可以告诉浏览器信任了
-//                    cors.addAllowedOrigin("http://localhost:8080");
-//                    //虽然也可以像这样允许所有 cors.addAllowedOriginPattern("*");
-//                    //但是这样并不安全，我们应该只许可给我们信任的站点
-//                    cors.setAllowCredentials(true);  //允许跨域请求中携带Cookie
-//                    cors.addAllowedHeader("*");   //其他的也可以配置，为了方便这里就 * 了
-//                    cors.addAllowedMethod("*");
-//                    cors.addExposedHeader("*");
-//                    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-//                    source.registerCorsConfiguration("/**", cors);  //直接针对于所有地址生效
-//                    conf.configurationSource(source);
-//                })
                 .csrf(AbstractHttpConfigurer::disable)
                 .exceptionHandling(conf -> {
                     //配置授权相关异常处理器
@@ -95,15 +81,15 @@ public class SecurityConfiguration {
     }
 
     public void handleProcess(HttpServletRequest request,
-                               HttpServletResponse response,
-                               Object exceptionOrAuthentication) throws IOException {
+                              HttpServletResponse response,
+                              Object exceptionOrAuthentication) throws IOException {
         response.setContentType("application/json;charset=utf-8");
         PrintWriter writer = response.getWriter();
-        if(exceptionOrAuthentication instanceof AccessDeniedException exception) {
+        if (exceptionOrAuthentication instanceof AccessDeniedException exception) {
             writer.write(RestBean.failure(403, exception.getMessage()).asJsonString());
-        } else if(exceptionOrAuthentication instanceof Exception exception) {
+        } else if (exceptionOrAuthentication instanceof Exception exception) {
             writer.write(RestBean.failure(401, exception.getMessage()).asJsonString());
-        } else if(exceptionOrAuthentication instanceof Authentication authentication){
+        } else if (exceptionOrAuthentication instanceof Authentication authentication) {
             User user = (User) authentication.getPrincipal();
             String token = utils.createJwt(user);
             Account account = accountService.findAccountByNameOrEmail(user.getUsername());
@@ -122,16 +108,16 @@ public class SecurityConfiguration {
     }
 
     public void onLogoutSuccess(HttpServletRequest request,
-                                 HttpServletResponse response,
-                                 Authentication authentication) throws IOException {
+                                HttpServletResponse response,
+                                Authentication authentication) throws IOException {
         response.setContentType("application/json;charset=utf-8");
         PrintWriter writer = response.getWriter();
         String authorization = request.getHeader("Authorization");
-       if(utils.invalidate(authorization)) {
-           writer.write(RestBean.success("退出登录成功").asJsonString());
-       } else {
-           writer.write(RestBean.failure(400, "退出登录失败").asJsonString());
-       }
+        if (utils.invalidate(authorization)) {
+            writer.write(RestBean.success("退出登录成功").asJsonString());
+        } else {
+            writer.write(RestBean.failure(400, "退出登录失败").asJsonString());
+        }
     }
 
     public void onAccessDeny(HttpServletRequest request,
@@ -140,20 +126,4 @@ public class SecurityConfiguration {
         response.setContentType("application/json;charset=utf-8");
         response.getWriter().write(RestBean.forbidden(exception.getMessage()).asJsonString());
     }
-
-//    void onAuthenticationFailure(HttpServletRequest request,
-//                                 HttpServletResponse response,
-//                                 AuthenticationException exception) throws IOException {
-//        response.setContentType("application/json;charset=utf-8");
-//        PrintWriter writer = response.getWriter();
-//        writer.write(RestBean.failure(401, exception.getMessage()).asJsonString());
-//    }
-//
-//    void onAuthenticationSuccess(HttpServletRequest request,
-//                                 HttpServletResponse response,
-//                                 Authentication authentication) throws IOException {
-//        response.setContentType("application/json;charset=utf-8");
-//        PrintWriter writer = response.getWriter();
-//        writer.write(RestBean.success(authentication.getName()).asJsonString());
-//    }
 }

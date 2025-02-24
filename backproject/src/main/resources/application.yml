@@ -19,6 +19,7 @@ spring:
       roles: #???????
         - admin
         - user
+
 #  data:
 #    redis:
 #      port: 6379

@@ -10,7 +10,7 @@ const defaultFailure = (message, code, url) => {
 
 const defaultError = (error) => {
     console.error(error);
-    ElMessage.warning("发生了一些错误，请联系管理员");
+    ElMessage.error("发生了一些错误，请联系管理员");
 }
 
 const storeAccessToken = (token, remember, expire) => {
@@ -71,7 +71,7 @@ function login(username, password, remember, success, failure = defaultFailure) 
     }, {
         'Content-Type' : "application/x-www-form-urlencoded"
     }, (data) => {
-        storeAccessToken(remember, data.token, data.expire);
+        storeAccessToken(data.token, remember, data.expire);
         ElMessage.success(`登录成功, 欢迎 ${data.message} 来到我们的系统`);
         success(data);
     },failure);
