@@ -10,7 +10,7 @@ spring:
 
   security:
     key: 'asdfas'
-    expire: 7000
+    expire: 168
     filter:
       order: -100 #Spring Security ????解决
     user:
@@ -19,6 +19,37 @@ spring:
       roles: #???????
         - admin
         - user
+
+  mail:
+    port: 465
+    # 163邮箱的地址为smtp.163.com，直接填写即可
+    host: smtp.163.com
+    # 你申请的163邮箱
+    username: r15813695017@163.com
+    # 注意密码是在开启smtp/pop3时自动生成的，记得保存一下，不然就找不到了
+    password: CVmsukDabMvJyeQ6
+    time: 3
+    protocol: smtps
+    properties:
+      mail:
+        smtp:
+          ssl:
+            enable: true
+          auth: true
+
+  rabbitmq:
+    addresses: 121.43.233.234
+    username: admin
+    password: admin
+    virtual-host: /test
+    listener:
+      simple:
+        acknowledge-mode: auto  # 改为自动确认
+
+logging:
+  level:
+    org.springframework.amqp: DEBUG
+    org.springframework.retry: TRACE
 
 #  data:
 #    redis:
