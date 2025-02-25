@@ -46,10 +46,10 @@ spring:
       simple:
         acknowledge-mode: auto  # 改为自动确认
 
-logging:
-  level:
-    org.springframework.amqp: DEBUG
-    org.springframework.retry: TRACE
+#logging:
+#  level:
+#    org.springframework.amqp: DEBUG
+#    org.springframework.retry: TRACE
 
 #  data:
 #    redis:

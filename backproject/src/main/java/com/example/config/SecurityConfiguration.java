@@ -27,6 +27,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.servlet.View;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -43,10 +44,10 @@ public class SecurityConfiguration {
     private AccountService accountService;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, View error) throws Exception {
         return http
                 .authorizeHttpRequests(conf -> {
-                    conf.requestMatchers("/api/auth/**").permitAll();
+                    conf.requestMatchers("/api/auth/**", "error").permitAll();
                     conf.anyRequest().authenticated();
                 })
                 .formLogin(conf -> {
@@ -73,12 +74,6 @@ public class SecurityConfiguration {
                 //添加我们用于处理JWT的过滤器到Security过滤器链中，注意要放在UsernamePasswordAuthenticationFilter之前
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        // 使用 BCrypt 作为默认编码器
-        return new BCryptPasswordEncoder();
     }
 
     public void handleProcess(HttpServletRequest request,

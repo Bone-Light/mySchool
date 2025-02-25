@@ -22,7 +22,6 @@ public class MailQueueListener {
 
     @RabbitHandler
     public void sendMailMessage(Map<String, Object> data) {
-        System.out.println("123123");
         String email = data.get("email").toString();
         Integer code = (Integer) data.get("code");
         String type = (String) data.get("type");
