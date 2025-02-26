@@ -23,11 +23,11 @@ spring:
   mail:
     port: 465
     # 163邮箱的地址为smtp.163.com，直接填写即可
-    host: smtp.163.com
+    host: smtp.126.com # smtp.163.com
     # 你申请的163邮箱
-    username: r15813695017@163.com
+    username: oilbone@126.com # r15813695017@163.com
     # 注意密码是在开启smtp/pop3时自动生成的，记得保存一下，不然就找不到了
-    password: CVmsukDabMvJyeQ6
+    password: GLhCjNzgzQXareYv  # CVmsukDabMvJyeQ6
     time: 3
     protocol: smtps
     properties:
