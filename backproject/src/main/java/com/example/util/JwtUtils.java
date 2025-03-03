@@ -32,14 +32,15 @@ public class JwtUtils {
     public HashSet<String> blackList = new HashSet<>();
 
     //根据用户信息创建Jwt令牌
-    public String createJwt(UserDetails user){
+    public String createJwt(UserDetails user, String username, int userId) {
         Algorithm algorithm = Algorithm.HMAC256(key);
         Calendar calendar = Calendar.getInstance();
         Date now = calendar.getTime();
         calendar.add(Calendar.HOUR, expire);
         return JWT.create()
                 .withJWTId(UUID.randomUUID().toString())
-                .withClaim("name", user.getUsername())  //配置JWT自定义信息
+                .withClaim("id", userId)
+                .withClaim("name", username)  //配置JWT自定义信息
                 .withClaim("authorities", user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList())
                 .withExpiresAt(calendar.getTime())  //设置过期时间
                 .withIssuedAt(now)    //设置创建创建时间
@@ -68,7 +69,7 @@ public class JwtUtils {
         if(this.isInvalidToken(uuid)) return false;
         Date now = new Date();
         long expire = Math.max(time.getTime() - now.getTime(), 0);
-        stringRedisTemplate.opsForValue().set(Const.JWT_BLACK_LIST + uuid, "",expire, TimeUnit.MICROSECONDS);
+        stringRedisTemplate.opsForValue().set(Const.JWT_BLACK_LIST + uuid, "",expire, TimeUnit.SECONDS);
         return true;
     }
 
@@ -107,5 +108,10 @@ public class JwtUtils {
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.HOUR, expire);
         return calendar.getTime();
+    }
+
+    public Integer toId(DecodedJWT jwt) {
+        Map<String, Claim> claims = jwt.getClaims();
+        return claims.get("id").asInt();
     }
 }

@@ -48,6 +48,7 @@ public class SecurityConfiguration {
         return http
                 .authorizeHttpRequests(conf -> {
                     conf.requestMatchers("/api/auth/**", "error").permitAll();
+                    conf.requestMatchers("swagger-ui/**", "v3/api-docs/**").permitAll();
                     conf.anyRequest().authenticated();
                 })
                 .formLogin(conf -> {
@@ -87,17 +88,17 @@ public class SecurityConfiguration {
             writer.write(RestBean.failure(401, exception.getMessage()).asJsonString());
         } else if (exceptionOrAuthentication instanceof Authentication authentication) {
             User user = (User) authentication.getPrincipal();
-            String token = utils.createJwt(user);
             Account account = accountService.findAccountByNameOrEmail(user.getUsername());
+            String token = utils.createJwt(user, account.getUsername() ,account.getId());
 
             AuthorizeVO vo = account.asViewObject(AuthorizeVO.class, v -> {
                 v.setToken(token);
                 v.setExpire(utils.expireTime());
             });
 //            BeanUt ils.copyProperties(account, vo);
+//            vo.setExpire(utils.expireTime());
+//            vo.setToken(token);
 
-            vo.setExpire(utils.expireTime());
-            vo.setToken(token);
             writer.write(RestBean.success(vo).asJsonString());
 //                        writer.write(RestBean.success(authentication.getName()).asJsonString());
         }

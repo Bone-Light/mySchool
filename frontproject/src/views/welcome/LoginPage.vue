@@ -39,7 +39,7 @@ import {get, login} from "@/net"
       <div style="margin-top: 50px">
         <el-form :model="form" :rules="rule" ref="formRef">
           <el-form-item prop="username">
-            <el-input v-model="form.username" maxlength="10" type="text" placeholder="用户名/邮箱">
+            <el-input v-model="form.username" maxlength="30" type="text" placeholder="用户名/邮箱">
               <template #prefix>
                 <el-icon><User/></el-icon>
               </template>

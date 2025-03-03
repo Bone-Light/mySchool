@@ -1,26 +1,26 @@
 package com.example.entity.dto;
 
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.example.entity.BaseData;
+import com.fasterxml.jackson.databind.ser.Serializers;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.io.Serializable;
 
 @Data
-@TableName("db_account")
 @AllArgsConstructor
 @NoArgsConstructor
-public class Account implements BaseData {
-    @TableId(type = IdType.AUTO)
+@TableName("db_account_details")
+public class AccountDetails implements BaseData {
+    @TableId
     Integer id;
-    String username;
-    String password;
-    String email;
-    String role;
-    Date registerTime;
+    int gender;
+    String phone;
+    String qq;
+    String wx;
+    String description;
 }

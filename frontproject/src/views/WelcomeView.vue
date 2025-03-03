@@ -31,12 +31,12 @@
   bottom: 30px;
   left: 30px;
   color: white;
-  text-shadow: 0 0 10px white;
+  text-shadow: 0 0 10px black;
 }
 
 .right-card {
   width: 25vw;
   z-index: 1;
-  background-color: white;
+  background-color: var(--el-bg-color);
 }
 </style>

@@ -33,6 +33,10 @@ public class MailQueueListener {
             case "reset" -> createMessage("您的重置密码邮件",
                     "您好，您正在进行重置密码操作，验证码: " + code + "有效时间3min，若非本人操作，请无视",
                     email);
+            case "modify" -> createMessage("您的邮件地址修改邮件",
+                    "您好，您正在进行更换邮箱操作，验证码: " + code + "有效时间3min，若非本人操作，请无视",
+                    email);
+
             default -> null;
         };
 
