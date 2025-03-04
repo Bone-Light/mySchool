@@ -92,7 +92,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         if(this.existsAccountByEmail(email)) return "此邮箱已被注册";
         if(this.existsAccountByUsername(username)) return "用户名已存在";
         String password = passwordEncoder.encode(vo.getPassword());
-        Account account = new Account(null, username, password, email, "user", new Date());
+        Account account = new Account(null, username, password, email, "user", null, new Date());
         if(this.save(account)) {
             stringRedisTemplate.delete(key);
             return null;

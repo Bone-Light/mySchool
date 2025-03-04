@@ -102,4 +102,4 @@ function unauthorized(success, failure = defaultFailure) {
     return !getAccessToken();
 }
 
-export {login, logout, get, post, unauthorized}
+export {login, logout, get, post, unauthorized, accessHeader}
