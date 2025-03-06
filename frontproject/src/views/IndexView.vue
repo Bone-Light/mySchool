@@ -53,13 +53,14 @@
             <el-menu
                 router
                 :default-active="$route.path"
+                :default-openeds="['1','2','3']"
                 style="height: calc(100% - 55px)">
               <el-sub-menu index="1">
                 <template #title>
                   <el-icon><Location/></el-icon>
                   <span><b>校园论坛</b></span>
                 </template>
-                <el-menu-item index="1-1">
+                <el-menu-item index="/index/topic-list">
                   <template #title>
                     <el-icon><ChatDotSquare/></el-icon> 帖子广场
                   </template>

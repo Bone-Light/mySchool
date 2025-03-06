@@ -59,6 +59,8 @@ spring:
     username: "oilbone"
     password: "123123123"
 
+  weather:
+    key: ac022387b6114136adc4f020305f1fa3
 logging:
   level:
     root=INFO:

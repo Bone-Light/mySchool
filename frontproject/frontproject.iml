@@ -5,5 +5,7 @@
     <content url="file://$MODULE_DIR$" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="index" level="application" />
+    <orderEntry type="library" name="qweather-icons" level="application" />
+    <orderEntry type="library" name="quill" level="application" />
   </component>
 </module>
