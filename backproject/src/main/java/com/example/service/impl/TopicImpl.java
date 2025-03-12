@@ -139,6 +139,17 @@ public class TopicImpl extends ServiceImpl<TopicMapper, Topic> implements TopicS
         }
     }
 
+    @Override
+    public List<TopicPreviewVO> listTopicCollects(int uid) {
+        return baseMapper.collectTopics(uid)
+                .stream()
+                .map(topic -> {
+                    TopicPreviewVO topicPreviewVO = new TopicPreviewVO();
+                    BeanUtils.copyProperties(topic, topicPreviewVO);
+                    return topicPreviewVO;
+                }).toList();
+    }
+
     private boolean hasInteract(int tid, int uid, String type) {
         String key = tid + ":" + uid;
         if(stringRedisTemplate.opsForHash().hasKey(key, type))

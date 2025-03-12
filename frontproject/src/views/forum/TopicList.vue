@@ -2,13 +2,14 @@
 import {computed, reactive, ref, watch} from "vue";
 import LightCard from "@/components/LightCard.vue";
 import {
+  ArrowRight, ArrowRightBold,
   Calendar, Cherry,
   Clock,
   Collection,
   Compass,
   Document,
   Edit,
-  EditPen,
+  EditPen, FolderOpened,
   Link,
   Microphone,
   Picture, Star
@@ -23,6 +24,7 @@ import ColorDot from "@/components/ColorDot.vue";
 import router from "@/router/index.js";
 import TopicTag from "@/components/TopicTag.vue";
 import InteractButton from "@/components/InteractButton.vue";
+import TopicCollectList from "@/components/TopicCollectList.vue";
 
 const editor = ref(false);
 const topics = reactive({
@@ -85,6 +87,8 @@ const weather = reactive({
   hourly: [],
   success: false,
 });
+
+const collects = ref(false);
 
 navigator.geolocation.getCurrentPosition(position => {
   const longitude = position.coords.longitude;
@@ -174,18 +178,25 @@ navigator.geolocation.getCurrentPosition(position => {
         </div>
       </transition>
     </div>
+
     <div style="width: 280px;">
       <div style="position:sticky; top: 20px">
-        <LightCard>
+        <lightCard>
+          <div class="collect-list-button" @click="collects = true">
+            <span><el-icon><FolderOpened/></el-icon>查看我的收藏</span>
+            <el-icon style="translate: 0 3px"><ArrowRightBold/></el-icon>
+          </div>
+        </lightCard>
+        <LightCard style="margin-top: 10px">
           <el-icon style="translate: 0 2px"><Collection/></el-icon>
           论坛公告
+          <el-divider style="margin: 10px 0"/>
+          <div style="font-size: 14px; margin: 10px; color: gray">
+            MySQL 8.0 移除查询缓存的决策，是权衡性能、维护成本和实际效用后的结果。
+            虽然查询缓存在特定场景（如静态数据重复查询）可能有效，但其全局锁、高维护成本及低命中率使其在高并发、动态数据环境下弊大于利。
+            建议通过外部缓存工具或优化 InnoDB 缓冲池来替代。
+          </div>
         </LightCard>
-        <el-divider style="margin: 10px 0"/>
-        <div style="font-size: 14px; margin: 10px; color: gray">
-          MySQL 8.0 移除查询缓存的决策，是权衡性能、维护成本和实际效用后的结果。
-          虽然查询缓存在特定场景（如静态数据重复查询）可能有效，但其全局锁、高维护成本及低命中率使其在高并发、动态数据环境下弊大于利。
-          建议通过外部缓存工具或优化 InnoDB 缓冲池来替代。
-        </div>
         <LightCard>
           <el-icon><calendar/></el-icon>
           天气信息
@@ -234,11 +245,25 @@ navigator.geolocation.getCurrentPosition(position => {
       </div>
     </div>
     <TopicEditor :show="editor" @success="onTopicCreate();" @close="editor=false"></TopicEditor>
+    <topic-collect-list :show="collects" @close="collects = false"></topic-collect-list>
   </div>
 </template>
 
 
 <style class="less" scoped>
+.collect-list-button{
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  transition: .3s;
+
+  &:hover{
+    cursor: pointer;
+    opacity: 0.6;
+  }
+}
+
+
 .top-topic{
   display: flex;
 
