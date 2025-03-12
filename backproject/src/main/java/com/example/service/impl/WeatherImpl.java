@@ -40,7 +40,7 @@ public class WeatherImpl implements WeatherService {
         if(geo == null) return null;
         JSONObject location = geo.getJSONArray("location").getJSONObject(0);
         int id = location.getInteger("id");
-        String key = Const.FLOW_LIMIT_WEATHER_CACHE + id;;
+        String key = Const.FORUM_LIMIT_WEATHER_CACHE + id;;
         String cache = stringRedisTemplate.opsForValue().get(key);
         if(cache != null){
             return JSONObject.parseObject(cache, WeatherVO.class);

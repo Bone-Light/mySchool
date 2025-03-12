@@ -1,30 +1,60 @@
 <script setup>
-import {reactive,ref} from "vue";
-import {ElOption} from "element-plus";
+import {reactive,ref,computed} from "vue";
+import {ElMessage, ElOption} from "element-plus";
 import {Check, Document} from "@element-plus/icons-vue"
 import MyEditor from "@/components/MyEditor.vue";
+import {get, post} from "@/net/index.js";
+import ColorDot from "@/components/ColorDot.vue";
+import {useStore} from "@/store/index.js";
+
+const store = useStore();
 defineProps({
   show:Boolean,
 })
 
-const emit = defineEmits(["close"]);
+const emit = defineEmits(["close", "success"]);
 
 const editor = reactive({
   type: null,
   title: '',
-  text: ''
+  text: {},
+  loading: false,
 })
 
-const types = [
-  {id: 1, name: '日常闲聊', desc: '在这里分享你的各种日常'},
-  {id: 2, name: '技术前沿', desc: '探讨最新科技动态与开发技巧'},
-  {id: 3, name: '玩家天地', desc: '分享游戏心得与组队开黑'},
-  {id: 4, name: '学霸联盟', desc: '交流学习方法和资源互助'},
-  {id: 5, name: '影视之声', desc: '推荐好剧好片，聊聊追剧日常'},
-  {id: 6, name: '健身狂人', desc: '打卡运动计划，分享增肌减脂经验'},
-  {id: 7, name: '旅行印记', desc: '发布游记攻略，展示旅途风光'},
-]
 
+function deltaToText(delta) {
+  if(!delta.ops) return "";
+  let str = "";
+  for(let op of delta.ops) str += op.insert;
+  return str.replace(/\s/g, "");
+}
+
+const contentLength = computed(() => deltaToText(editor.text).length );
+
+function submitTopic() {
+  const text = deltaToText(editor.text);
+  if(text.length > 20000){
+    ElMessage.warning("字数超出范围，无法发表主题")
+    return
+  }
+  if(!editor.title){
+    ElMessage.warning ("请填写标题")
+    return
+  }
+  if(!editor.type) {
+    ElMessage.warning("请选择一个合适的帖子标题")
+    return
+  }
+  console.log(editor.text)
+  post("api/forum/create-topic", {
+    type: editor.type.id,
+    title: editor.title,
+    content: editor.text,
+  }, ()=>{
+    ElMessage.success("帖子发表成功!")
+    emit('success')
+  })
+}
 </script>
 
 <template>
@@ -44,25 +74,41 @@ const types = [
 
       <div style="display: flex; gap: 10px">
         <div style="width: 160px">
-          <el-select placeholder="请选择帖子类型..." v-model="editor.type">
-            <el-option v-for="item in types" :value="item.id" :label="item.name"></el-option>
+          <el-select placeholder="请选择帖子类型..." value-key="id" v-model="editor.type" :disabled="!store.forum.types.length">
+            <el-option v-for="item in store.forum.types.filter(type => type.id > 0)" :value="item" :label="item.name">
+              <div>
+                <ColorDot :color="item.color"></ColorDot>
+                <span style="margin-left: 10px">{{item.name}}</span>
+              </div>
+            </el-option>
           </el-select>
         </div>
         <div style="flex: 1;">
-          <el-input placeholder="请输入帖子标题" :prefix-icon="Document" v-model="editor.text"></el-input>
+          <el-input placeholder="请输入帖子标题" :prefix-icon="Document" v-model="editor.title" maxlength="60"></el-input>
         </div>
       </div>
+      <div style="margin-top: 10px; font-size: 13px; color: gray">
+        <ColorDot :color="editor.type? editor.type.color : '#FFFFFF'"></ColorDot>
+        {{editor.type? editor.type.description : '请在上面选择一个帖子标题'}}
+      </div>
 
-      <div style="height: 460px">
-          <MyEditor style="margin-top: 10px; height: calc(100% - 60px);"
-                    :content="editor.text" placeholder="今天想分享点什么呢 ..."/>
+      <div style="height: 440px">
+          <MyEditor style="margin-top: 10px; height: calc(100% - 60px); border-radius: 5px"
+                    v-model="editor.text"
+                    placeholder="今天想分享点什么呢 ..."
+                    content-type="delta"
+                    v-loading="editor.loading"
+                    element-loading-text="正在上传图片，请稍后..."
+          />
+
+
       </div>
       <div style="display: flex; justify-content: space-between; margin-top: 15px">
         <div style="color: gray; font-size: 13px">
-          当前字数：666 (最大支持 30000 字)
+          当前字数：{{contentLength}} (最大支持 30000 字)
         </div>
         <div>
-          <el-button type="success" :icon="Check" plain>立刻发表主题</el-button>
+          <el-button type="success" :icon="Check" @click="submitTopic()" plain>立刻发表主题</el-button>
         </div>
       </div>
     </el-drawer>

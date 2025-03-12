@@ -5,17 +5,23 @@
 </template>
 
 <script>
-import Quill from 'quill'
 import 'quill/dist/quill.snow.css'
+import Quill from 'quill'
+import { ImageExtend, QuillWatch } from "quill-image-super-solution-module";
+import {ElMessage} from "element-plus";
+import axios from "axios";
+import {accessHeader} from "@/net/index.js";
 
+Quill.register('modules/ImageExtend', ImageExtend)
 export default {
   name: 'editor',
   props: {
-    value: Object,
+    modelValue: Object, // 对应 v-model
     placeholder: {
       type: String,
       default: '点击输入...'
-    }
+    },
+    loading: false
   },
 
   data() {
@@ -64,9 +70,35 @@ export default {
               'table-delete-column': function () {
                 this.quill.getModule('table').deleteColumn()
               },
+              'image': function () {
+                QuillWatch.emit(this.quill.id);
+              }
             },
           },
-          table: true,
+          ImageExtend: {
+            action:  axios.defaults.baseURL + '/api/image/cache',
+            name: 'file',
+            size: 5,
+            loading: true,
+            accept: 'image/png, image/jpeg',
+            response: (resp) => {
+              if(resp.data) {
+                return axios.defaults.baseURL + '/images' + resp.data
+              } else {
+                return null
+              }
+            },
+            methods: 'POST',
+            headers: xhr => {
+              xhr.setRequestHeader('Authorization', accessHeader().Authorization);
+            },
+            success: () => {
+              ElMessage.success('图片上传成功!')
+            },
+            error: () => {
+              ElMessage.warning('图片上传失败，请联系管理员!')
+            }
+          },
         },
         placeholder: this.placeholder,
       },
@@ -79,12 +111,14 @@ export default {
 
       // 事件监听前确保实例存在
       this.quill.on('text-change', () => {
-        this.$emit('input', this.quill.getContents());
+        this.$emit('update:modelValue', this.quill.getContents());
       });
+
       this.$el.querySelector('.ql-table-insert-row').innerHTML = `—`
       this.$el.querySelector('.ql-table-insert-column').innerHTML = `|`
       this.$el.querySelector('.ql-table-delete-row').innerHTML = `-—`
       this.$el.querySelector('.ql-table-delete-column').innerHTML = `-|`
+
     });
   }
 }

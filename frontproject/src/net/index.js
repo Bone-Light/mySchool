@@ -87,7 +87,7 @@ function post(url, data, success, failure = defaultFailure) {
 
 function accessHeader(){
     const token = getAccessToken();
-    return token ? {'Authorization': `Bearer ${getAccessToken()}` } : {};
+    return token ? {'Authorization': `Bearer ${getAccessToken()}`} : {};
 }
 
 function logout(success, failure = defaultFailure) {

@@ -5,6 +5,7 @@ import com.example.entity.vo.request.ConfirmResetVO;
 import com.example.entity.vo.request.EmailRegisterVO;
 import com.example.entity.vo.request.EmailResetVO;
 import com.example.service.AccountService;
+import com.example.util.ControllerUtils;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -22,6 +23,8 @@ import java.util.function.Supplier;
 public class AuthorizeController {
     @Resource
     AccountService accountService;
+    @Resource
+    ControllerUtils controllerUtils;
 
     @GetMapping("/ask-code")
     public RestBean<Void> askCode(@RequestParam @Email String email,
@@ -29,7 +32,7 @@ public class AuthorizeController {
                                     HttpServletRequest request){
 //        String message = accountService.registerEmailVerifyCode(type, email, request.getRemoteAddr());
 //        return message == null? RestBean.success() : RestBean.failure(400, message);
-        return this.messageHandle(() ->
+        return controllerUtils.messageHandle(() ->
                 accountService.registerEmailVerifyCode(type, email, request.getRemoteAddr()));
     }
 
@@ -49,11 +52,6 @@ public class AuthorizeController {
     }
 
     private <T> RestBean<Void> messageHandle(T vo, Function<T, String> message){
-        return messageHandle(() -> message.apply(vo));
-    }
-
-    private RestBean<Void> messageHandle(Supplier<String> action){
-        String message = action.get();
-        return message == null ? RestBean.success() : RestBean.failure(400, message);
+        return controllerUtils.messageHandle(() -> message.apply(vo));
     }
 }

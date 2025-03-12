@@ -14,7 +14,6 @@ import io.minio.errors.*;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.IOUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,7 +21,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.sql.Wrapper;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
@@ -69,8 +67,8 @@ public class ImageImpl extends ServiceImpl<ImageMapper, StoreImage> implements I
 
     @Override
     public String uploadImage(MultipartFile file, int id) throws IOException {
-        String key = Const.FLOW_LIMIT_COUNTER + id;
-        if(flowUtils.limitPeriodCountCheck(key, 15, 1800)){
+        String key = Const.FORUM_LIMIT_IMAGE_COUNTER + id;
+        if(!flowUtils.limitPeriodCountCheck(key, 15, 1800)){
             return null;
         }
         String imageName = UUID.randomUUID().toString().replaceAll("-", "");

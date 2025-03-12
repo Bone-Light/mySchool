@@ -17,7 +17,7 @@ public class ImageController {
     @Resource
     ImageService imageService;
 
-    @PostMapping("/cashe")
+    @PostMapping("/cache")
     public RestBean<String> uploadImage(@RequestParam("file") MultipartFile file,
                                         @RequestAttribute(Const.ATTR_USER_ID) int id) throws IOException {
         if(file.getSize()>1024*1024*8){

@@ -1,18 +1,82 @@
 <script setup>
-import {computed, reactive, ref} from "vue";
+import {computed, reactive, ref, watch} from "vue";
 import LightCard from "@/components/LightCard.vue";
-import {Calendar, Collection, EditPen, Link} from "@element-plus/icons-vue";
+import {
+  Calendar,
+  Clock,
+  Collection,
+  Compass,
+  Document,
+  Edit,
+  EditPen,
+  Link,
+  Microphone,
+  Picture
+} from "@element-plus/icons-vue";
 import Weather from "@/components/Weather.vue";
 import {get} from "@/net/index.js";
 import {ElMessage} from "element-plus";
 import TopicEditor from "@/components/TopicEditor.vue";
+import {useStore} from "@/store/index.js";
+import axios from "axios";
+import ColorDot from "@/components/ColorDot.vue";
+import router from "@/router/index.js";
+import TopicTag from "@/components/TopicTag.vue";
 
 const editor = ref(false);
+const topics = reactive({
+  list: [],
+  type: 0,
+  page: 0,
+  end: false,
+  top: []
+});
+
+const type = ref(0);
+
+watch(type, () => {
+  resetList();
+}, {immediate: true});
+
+const store = useStore();
 
 const today = computed(() => {
   const date = new Date();
   return `${date.getFullYear()} 年 ${date.getMonth()+1} 月 ${date.getDate()} 日`;
 });
+
+
+get('api/forum/top-topic', data => {
+  topics.top = data;
+})
+
+
+function updateList() {
+  if(topics.end) return;
+  get(`api/forum/list-topic?page=${topics.page}&type=${type.value}`, data => {
+    if(data) {
+      data.forEach(d => topics.list.push(d))
+      topics.page++;
+    }
+    if(!data || data.length < 10){
+      topics.end = true;
+    }
+  });
+}
+
+updateList();
+
+function onTopicCreate(){
+  editor.value = false;
+  resetList();
+}
+
+function resetList(){
+  topics.page = 0
+  topics.list = []
+  topics.end = false
+  updateList();
+}
 
 const weather = reactive({
   location: {},
@@ -42,20 +106,64 @@ navigator.geolocation.getCurrentPosition(position => {
 </script>
 
 <template>
-  <div style="display: flex; margin: 20px auto; gap: 20px; max-width: 900px;">
+  <div style="display: flex; margin: 20px auto; gap: 5px; max-width: 900px;">
     <div style="flex: 1">
       <LightCard>
         <div class="create-topic" @click="editor=true">
           <el-icon style="translate: 0 2px"><EditPen/></el-icon>
           点击发表主题 ......
         </div>
+        <div style="margin-top: 10px; display: flex; gap: 13px; font-size: 18px; color: gray">
+          <el-icon><Edit/></el-icon>
+          <el-icon><Document/></el-icon>
+          <el-icon><Compass/></el-icon>
+          <el-icon><Picture/></el-icon>
+          <el-icon><Microphone/></el-icon>
+        </div>
       </LightCard>
-      <light-card style="margin-top: 10px; height: 30px"></light-card>
-      <div style="margin-top: 10px">
-          <lightCard style="height: 150px" v-for="item in 10">
+      <lightCard style="margin-top: 10px; display:flex; flex-direction: column; gap: 10px">
+        <div v-for="item in topics.top" class="top-topic" @click="router.push(`/index/topic-detail/${item.id}`)">
+          <el-tag type="info" size="small">置顶</el-tag>
+          <div>{{item.title}}</div>
+          <div>{{new Date(item.time).toLocaleDateString()}}</div>
+        </div>
+      </lightCard>
 
-          </lightCard>
-      </div>
+      <light-card style="margin-top: 10px; display: grid; grid-template-columns: repeat(5, 1fr); grid-gap: 10px;">
+        <div :class="`type-select-card ${type === item.id ? 'active': ''}`"
+              v-for="item in store.forum.types" @click="type = item.id">
+          <ColorDot :color="item.color" />
+          {{item.name}}
+        </div>
+      </light-card>
+      <transition name="el-fade-in" mode="out-in">
+        <div v-if="topics.list.length">
+          <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 5px;" v-infinite-scroll="updateList()">
+              <lightCard v-for="item in topics.list" class="text-card" @click="router.push(`/index/topic-detail/${item.id}`)">
+                <div style="display: flex">
+                  <div>
+                    <el-avatar :size="30" :src="`${axios.defaults.baseURL}/image${item.avatar}`"/>
+                  </div>
+                  <div style="margin-left: 7px; margin-bottom: 7px;">
+                    <div style="font-size: 13px; font-weight: bold;">{{item.username}}</div>
+                    <div style="font-size: 12px; color: gray">
+                      <el-icon style="translate: 0 1px"><Clock/></el-icon>
+                      {{new Date(item.time).toLocaleString() }}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <TopicTag :type="item.type" />
+                  <span style="font-weight: bold">{{item.title}}</span>
+                </div>
+                <div class="topic-content"> {{item.text}} </div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); grid-gap: 20px;">
+                  <el-image class="topic-image" v-for="img in item.images" :src="img" fit="cover"></el-image>
+                </div>
+              </lightCard>
+          </div>
+        </div>
+      </transition>
     </div>
     <div style="width: 280px;">
       <div style="position:sticky; top: 20px">
@@ -116,12 +224,89 @@ navigator.geolocation.getCurrentPosition(position => {
         </div>
       </div>
     </div>
-    <TopicEditor :show="editor" @close="editor=false"></TopicEditor>
+    <TopicEditor :show="editor" @success="onTopicCreate();" @close="editor=false"></TopicEditor>
   </div>
 </template>
 
 
-<style scoped>
+<style class="less" scoped>
+.top-topic{
+  display: flex;
+
+  div:first-of-type{
+    font-size: 14px;
+    margin-left: 10px;
+    font-weight: bold;
+    opacity: 0.8;
+    transition: color .3s;
+
+    &:hover{
+      color: gray;
+    }
+  }
+
+  div:nth-of-type(2){
+    flex: 1;
+    color: gray;
+    font-size: 12px;
+    text-align: right;
+  }
+
+  &:hover{
+    cursor: pointer;
+  }
+}
+
+.type-select-card {
+  background-color: #f5f5f5;
+  padding: 2px 7px;
+  font-size: 12px;
+  border-radius: 4px;
+  box-sizing: border-box;
+  transition: background-color .3s;
+  border: 1px solid #fff3f3;
+
+  &.active {
+    border: 1px solid #ead4c4;
+  }
+
+  &:hover{
+    cursor: pointer;
+    background-color: #dadada;
+  }
+}
+
+.text-card {
+  padding:15px;
+  transition: scale .5s;
+
+  &:hover {
+    scale: 1.015;
+    cursor: pointer;
+  }
+
+  .topic-content {
+    font-size: 13px;
+    color: gray;
+    margin: 5px 0;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+
+
+  .topic-image {
+    width: 100%;
+    height: 100%;
+    max-height: 110px;
+    border-radius: 5px;
+
+  }
+}
+
 .info-text{
   display: flex;
   justify-content: space-between;
@@ -144,6 +329,24 @@ navigator.geolocation.getCurrentPosition(position => {
   color: #737373;
   &:hover {
     cursor: pointer;
+  }
+}
+
+.dark {
+  .create-topic {
+    background-color: #232323;
+  }
+
+  .type-select-card {
+    background-color: #282828;
+
+    &.active {
+      border: solid 1px #64594b;
+    }
+
+    &:hover {
+      background-color: #5e5e5e;
+    }
   }
 }
 </style>

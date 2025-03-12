@@ -43,7 +43,6 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-//        System.out.println(username);
         Account account = this.findAccountByNameOrEmail(username);
         if(account == null) {
             throw new UsernameNotFoundException(username);

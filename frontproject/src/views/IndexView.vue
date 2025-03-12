@@ -60,7 +60,7 @@
                   <el-icon><Location/></el-icon>
                   <span><b>校园论坛</b></span>
                 </template>
-                <el-menu-item index="/index/topic-list">
+                <el-menu-item index="/index">
                   <template #title>
                     <el-icon><ChatDotSquare/></el-icon> 帖子广场
                   </template>

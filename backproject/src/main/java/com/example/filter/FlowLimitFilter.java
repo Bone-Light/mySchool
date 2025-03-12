@@ -51,8 +51,8 @@ public class FlowLimitFilter extends HttpFilter {
     private boolean limitPeriodCheck(String ip){
         if(stringRedisTemplate.hasKey(Const.FLOW_LIMIT_COUNTER + ip)){
             long increment = Optional.ofNullable(stringRedisTemplate.opsForValue().increment(Const.FLOW_LIMIT_COUNTER + ip)).orElse(0L);
-            if(increment > 10) {
-                stringRedisTemplate.opsForValue().set(Const.FLOW_LIMIT_BLOCK + ip, "", 30, TimeUnit.SECONDS);
+            if(increment > 100) {
+                stringRedisTemplate.opsForValue().set(Const.FLOW_LIMIT_BLOCK + ip, "", 3, TimeUnit.SECONDS);
                 return false;
             }
         } else {
