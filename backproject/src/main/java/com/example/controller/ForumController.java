@@ -69,11 +69,11 @@ public class ForumController {
         return RestBean.success(topicService.getTopic(tid));
     }
 
-    @GetMapping
+    @GetMapping("/interact")
     public RestBean<Void> interact(@RequestParam @Min(0) int tid,
                                    @RequestParam @Pattern(regexp = "(like|collect)") String type,
                                    @RequestParam boolean state,
-                                   @RequestParam(Const.ATTR_USER_ID) int id) {
+                                   @RequestAttribute(Const.ATTR_USER_ID) int id) {
         topicService.interact(new Interact(tid, id ,new Date(), type), state);
         return  RestBean.success();
     }

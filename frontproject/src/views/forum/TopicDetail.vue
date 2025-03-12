@@ -3,22 +3,27 @@ import {reactive,computed} from "vue";
 import {useRoute} from "vue-router";
 import {get} from "@/net/index.js";
 import axios from "axios";
-import {ArrowLeft, Female, Male} from "@element-plus/icons-vue";
+import {ArrowLeft, Cherry, Female, Male, Star} from "@element-plus/icons-vue";
 import {QuillDeltaToHtmlConverter} from "quill-delta-to-html";
 import Card from "@/components/Card.vue";
 import router from "@/router/index.js";
 import TopicTag from "@/components/TopicTag.vue";
+import InteractButton from "@/components/InteractButton.vue";
+import {ElMessage} from "element-plus";
 const route = useRoute()
 const tid = route.params.tid
 
 const topic = reactive({
   data: null,
   comment: [],
-
+  like: false,
+  collect: false,
 });
 
 get(`api/forum/topic?tid=${tid}`, data => {
   topic.data = data;
+  topic.like = data.interact.like;
+  topic.collect = data.interact.collect;
   // console.log(topic.data);
 })
 
@@ -27,6 +32,17 @@ const content = computed(() => {
   const converter = new QuillDeltaToHtmlConverter(ops, {inlineStyles: true})
   return converter.convert();
 })
+
+function interact(type, message) {
+  get(`/api/forum/interact?tid=${tid}&type=${type}&state=${!topic[type]}`, () => {
+    topic[type] = !topic[type];
+    if(topic[type]) {
+      ElMessage.success(`${message}成功!`);
+    } else {
+      ElMessage.success(`${message}已取消`);
+    }
+  })
+}
 
 </script>
 
@@ -69,10 +85,26 @@ const content = computed(() => {
       </div>
       <div class="topic-main-right">
         <div class="topic-content" v-html="content"></div>
+        <el-divider/>
+        <div style="font-size: 13px; color: gray; text-align: center;">
+            <div>发帖时间: {{new Date(topic.data.time).toLocaleString()}}</div>
+        </div>
+
+        <div style="text-align: right; margin-top: 25px">
+          <interact-button name="点个赞吧" check-name="已点赞" color="pink" :check="topic.like" @check="interact('like', '点赞')">
+             <el-icon style="translate: 0 2px; margin-right: 3px"><Cherry/></el-icon>
+          </interact-button>
+          <interact-button name="点收藏不迷路" check-name="已收藏" color="orange" :check="topic.collect" @check="interact('collect', '收藏')">
+             <el-icon style="translate: 0 1px; margin-right: 3px"><Star/></el-icon>
+          </interact-button>
+        </div>
       </div>
     </div>
 
+
+
     <div>
+
     </div>
   </div>
 
@@ -116,8 +148,5 @@ const content = computed(() => {
       color: gray;
     }
   }
-
 }
-
-
 </style>

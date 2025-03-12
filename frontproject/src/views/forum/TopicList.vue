@@ -2,7 +2,7 @@
 import {computed, reactive, ref, watch} from "vue";
 import LightCard from "@/components/LightCard.vue";
 import {
-  Calendar,
+  Calendar, Cherry,
   Clock,
   Collection,
   Compass,
@@ -11,7 +11,7 @@ import {
   EditPen,
   Link,
   Microphone,
-  Picture
+  Picture, Star
 } from "@element-plus/icons-vue";
 import Weather from "@/components/Weather.vue";
 import {get} from "@/net/index.js";
@@ -22,6 +22,7 @@ import axios from "axios";
 import ColorDot from "@/components/ColorDot.vue";
 import router from "@/router/index.js";
 import TopicTag from "@/components/TopicTag.vue";
+import InteractButton from "@/components/InteractButton.vue";
 
 const editor = ref(false);
 const topics = reactive({
@@ -138,7 +139,7 @@ navigator.geolocation.getCurrentPosition(position => {
       </light-card>
       <transition name="el-fade-in" mode="out-in">
         <div v-if="topics.list.length">
-          <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 5px;" v-infinite-scroll="updateList()">
+          <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 5px;" v-infinite-scroll="updateList">
               <lightCard v-for="item in topics.list" class="text-card" @click="router.push(`/index/topic-detail/${item.id}`)">
                 <div style="display: flex">
                   <div>
@@ -159,6 +160,14 @@ navigator.geolocation.getCurrentPosition(position => {
                 <div class="topic-content"> {{item.text}} </div>
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); grid-gap: 20px;">
                   <el-image class="topic-image" v-for="img in item.images" :src="img" fit="cover"></el-image>
+                </div>
+                <div style="display: flex; gap: 20px; font-size: 13px; margin-top: 10px; opacity: 0.7">
+                  <div>
+                    <el-icon style="vertical-align: middle; translate: 0 -1px; margin-right: 1px"><Cherry/></el-icon>{{item.like}} 点赞
+                  </div>
+                  <div>
+                    <el-icon style="vertical-align: middle; translate: 0 -1px; margin-right: 1px"><Star/></el-icon>{{item.collect}} 收藏
+                  </div>
                 </div>
               </lightCard>
           </div>

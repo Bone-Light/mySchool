@@ -6,6 +6,7 @@ import com.example.entity.dto.Topic;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 
@@ -30,4 +31,15 @@ public interface TopicMapper extends BaseMapper<Topic> {
             </script>
             """)
     int deleteInteract(List<Interact> interacts, String type);
+
+    @Select("""
+            select count(*) from db_topic_interact_${type} where tid = #{tid} and uid = #{uid}
+            """)
+    int userInteractCount(int tid, int uid, String type);
+
+    @Select("""
+            select * from db_topic_interact_collect right join db_topic on tid = db_topic.id
+             where db_topic_interact_collect.uid = #{uid}
+            """)
+    List<Topic> collectTopics(int uid);
 }
