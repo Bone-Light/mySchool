@@ -10,11 +10,15 @@ useDark({
 </script>
 
 <template>
-  <div>
-    <router-view/>
-  </div>
+  <header>
+    <div class="wrapper">
+      <router-view/>
+    </div>
+  </header>
 </template>
 
 <style scoped>
-
+.wrapper {
+  line-height: 1.5;
+}
 </style>

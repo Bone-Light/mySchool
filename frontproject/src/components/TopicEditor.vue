@@ -6,14 +6,45 @@ import MyEditor from "@/components/MyEditor.vue";
 import {get, post} from "@/net/index.js";
 import ColorDot from "@/components/ColorDot.vue";
 import {useStore} from "@/store/index.js";
-
+import {Delta} from "quill";
 const store = useStore();
-defineProps({
+const props = defineProps({
   show:Boolean,
-})
+  defaultTitle: {
+    default: '',
+    type: String
+  },
+  defaultText: {
+    default: '',
+    type: String
+  },
+  defaultType: {
+    default: null,
+    type: Number
+  },
+  submitButton: {
+    default: '立即发表主题',
+    type: String
+  },
+  submit:{
+    default: (editor, success) => {
+      post("api/forum/create-topic", {
+        type: editor.type.id,
+        title: editor.title,
+        content: editor.text,
+      }, ()=>{
+        ElMessage.success("帖子发表成功!");
+        success();
+      })
+    },
+    type: Function
+  }
+});
+
+
 
 const emit = defineEmits(["close", "success"]);
-
+const refEditor = ref()
 const editor = reactive({
   type: null,
   title: '',
@@ -21,6 +52,27 @@ const editor = reactive({
   loading: false,
 })
 
+function initEditor() {
+  if(props.defaultText){
+    editor.text = new Delta(JSON.parse(props.defaultText));
+  } else{
+    try {
+      const delta = new Delta();
+      refEditor.value.quill.setContents(delta);
+    } catch (error) {
+      // console.error("Quill渲染失败:", error);
+    }
+  }
+  editor.title = props.defaultTitle
+  editor.type = findTypeById(props.defaultType)
+}
+
+function findTypeById(id){
+  for (let type of store.forum.types) {
+    if(type.id === id)
+      return type
+  }
+}
 
 function deltaToText(delta) {
   if(!delta.ops) return "";
@@ -45,15 +97,8 @@ function submitTopic() {
     ElMessage.warning("请选择一个合适的帖子标题")
     return
   }
-  console.log(editor.text)
-  post("api/forum/create-topic", {
-    type: editor.type.id,
-    title: editor.title,
-    content: editor.text,
-  }, ()=>{
-    ElMessage.success("帖子发表成功!")
-    emit('success')
-  })
+  props.submit(editor, () => emit('success'));
+
 }
 </script>
 
@@ -62,6 +107,7 @@ function submitTopic() {
     <el-drawer :model-value="show"
                :direction="'btt'"
                :size="650"
+               @open="initEditor"
                :close-on-click-modal="false"
                @close="emit('close')"
     >
@@ -99,6 +145,8 @@ function submitTopic() {
                     content-type="delta"
                     v-loading="editor.loading"
                     element-loading-text="正在上传图片，请稍后..."
+                    ref="refEditor"
+                    v-if="show"
           />
 
 
@@ -108,7 +156,7 @@ function submitTopic() {
           当前字数：{{contentLength}} (最大支持 30000 字)
         </div>
         <div>
-          <el-button type="success" :icon="Check" @click="submitTopic()" plain>立刻发表主题</el-button>
+          <el-button type="success" :icon="Check" @click="submitTopic()" plain>{{submitButton}}</el-button>
         </div>
       </div>
     </el-drawer>

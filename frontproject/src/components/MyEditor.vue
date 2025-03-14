@@ -6,7 +6,7 @@
 
 <script>
 import 'quill/dist/quill.snow.css'
-import Quill from 'quill'
+import Quill, {Delta} from 'quill'
 import { ImageExtend, QuillWatch } from "quill-image-super-solution-module";
 import {ElMessage} from "element-plus";
 import axios from "axios";
@@ -23,10 +23,10 @@ export default {
     },
     loading: false
   },
-
   data() {
     return {
       quill:null,
+      quillReady: false,
       options: {
         theme: 'snow',
         modules: {
@@ -108,8 +108,6 @@ export default {
     this.$nextTick(() => {
       let dom = this.$el.querySelector('.editor');
       this.quill = new Quill(dom, this.options);
-
-      // 事件监听前确保实例存在
       this.quill.on('text-change', () => {
         this.$emit('update:modelValue', this.quill.getContents());
       });
@@ -119,8 +117,9 @@ export default {
       this.$el.querySelector('.ql-table-delete-row').innerHTML = `-—`
       this.$el.querySelector('.ql-table-delete-column').innerHTML = `-|`
 
+      this.quillReady = true // ✅ 标记初始化完成
     });
-  }
+  },
 }
 
 

@@ -1,15 +1,18 @@
 <script setup>
-import {reactive,computed} from "vue";
+import {reactive,computed,ref} from "vue";
 import {useRoute} from "vue-router";
-import {get} from "@/net/index.js";
+import {get,post} from "@/net/index.js";
 import axios from "axios";
-import {ArrowLeft, Cherry, Female, Male, Star} from "@element-plus/icons-vue";
+import {ArrowLeft, Cherry, EditPen, Female, Male, Plus, Star} from "@element-plus/icons-vue";
 import {QuillDeltaToHtmlConverter} from "quill-delta-to-html";
 import Card from "@/components/Card.vue";
 import router from "@/router/index.js";
 import TopicTag from "@/components/TopicTag.vue";
 import InteractButton from "@/components/InteractButton.vue";
 import {ElMessage} from "element-plus";
+import {useStore} from "@/store/index.js";
+import TopicEditor from "@/components/TopicEditor.vue";
+import TopicCommentEditor from "@/components/TopicCommentEditor.vue";
 const route = useRoute()
 const tid = route.params.tid
 
@@ -20,17 +23,32 @@ const topic = reactive({
   collect: false,
 });
 
-get(`api/forum/topic?tid=${tid}`, data => {
+const edit = ref(false);
+const store = useStore();
+const comment = reactive({
+  show: false,
+  text: '',
+  quote: -1,
+})
+
+const init = () => get(`api/forum/topic?tid=${tid}`, data => {
   topic.data = data;
   topic.like = data.interact.like;
   topic.collect = data.interact.collect;
   // console.log(topic.data);
-})
+});
+init();
 
 const content = computed(() => {
   const ops = JSON.parse(topic.data.content).ops;
   const converter = new QuillDeltaToHtmlConverter(ops, {inlineStyles: true})
   return converter.convert();
+})
+
+const comments = reactive({
+    show: false,
+    text: '',
+    quote: -1,
 })
 
 function interact(type, message) {
@@ -44,6 +62,18 @@ function interact(type, message) {
   })
 }
 
+function updateTopic(editor, topic) {
+  post('api/forum/update-topic', {
+    id: tid,
+    type: editor.type.id,
+    title: editor.title,
+    content: editor.text,
+  }, ()=>{
+    ElMessage.success('帖子内容更新成功');
+    edit.value = false;
+    init();
+  })
+}
 </script>
 
 <template>
@@ -91,6 +121,9 @@ function interact(type, message) {
         </div>
 
         <div style="text-align: right; margin-top: 25px">
+          <interact-button name="编辑帖子" check-name="编辑帖子" color="dodgerblue" :check="true" @check="edit=true" v-if="store.user.id === topic.data.user.id">
+            <el-icon style="translate: 0 2px; margin-right: 3px"><EditPen/></el-icon>
+          </interact-button>
           <interact-button name="点个赞吧" check-name="已点赞" color="pink" :check="topic.like" @check="interact('like', '点赞')">
              <el-icon style="translate: 0 2px; margin-right: 3px"><Cherry/></el-icon>
           </interact-button>
@@ -100,17 +133,43 @@ function interact(type, message) {
         </div>
       </div>
     </div>
+    <topic-editor :show="edit" @close="edit=false" v-if="topic.data && store.forum.types"
+      :default-text="topic.data.content"
+      :default-title="topic.data.title"
+      :default-type="topic.data.type"
+      submit-button="更新帖子内容"
+      :submit="updateTopic"/>
 
-
-
-    <div>
-
+    <topic-comment-editor :show="comment.show" @close="comment.show = false"
+                          :quote="comment.quote" :tid="tid"/>
+    <div class="add-comment" @click="comment.show = true" >
+      <el-icon><Plus/></el-icon>
     </div>
   </div>
 
 </template>
 
-<style scoped>
+<style class="less" scoped>
+.add-comment {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 18px;
+  line-height: 45px;
+  text-align: center;
+  color: var(--el-color-primary);
+  background: var(--el-bg-color-overlay);
+  box-shadow: var(--el-box-shadow-lighter);
+
+  &:hover {
+    background: var(--el-border-color-extra-light);
+    cursor: pointer;
+  }
+}
+
 .topic-page {
   display: flex;
   flex-direction: column;
@@ -136,11 +195,14 @@ function interact(type, message) {
   .topic-main-right{
     width: 600px;
     padding: 10px 20px;
+    display: flex;
+    flex-direction: column;
 
     .topic-content{
       font-size: 14px;
       line-height: 22px;
       opacity: 0.8;
+      flex: 1;
     }
 
     .description{

@@ -15,5 +15,6 @@ public class Const {
     public static final String FORUM_LIMIT_WEATHER_CACHE = "forum:weather:cache:";
     public static final String FORUM_LIMIT_IMAGE_COUNTER = "forum:image:";
     public static final String FORUM_TOPIC_CREATE_COUNTER = "forum:topic:create:";
+    public static final String FORUM_TOPIC_COMMENT_COUNTER = "forum:comment:create:";
     public static final String FORUM_TOPIC_PREVIEW_CACHE = "forum:topic:preview:";
 }

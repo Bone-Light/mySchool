@@ -3,7 +3,9 @@ package com.example.controller;
 import com.example.entity.RestBean;
 import com.example.entity.dto.Interact;
 import com.example.entity.dto.Topic;
+import com.example.entity.vo.request.AddCommentVO;
 import com.example.entity.vo.request.TopicCreateVO;
+import com.example.entity.vo.request.TopicUpdateVO;
 import com.example.entity.vo.response.*;
 import com.example.service.TopicService;
 import com.example.service.WeatherService;
@@ -65,8 +67,9 @@ public class ForumController {
     }
 
     @GetMapping("/topic")
-    public RestBean<TopicDetailVO> topic(@RequestParam @Min(0) int tid) {
-        return RestBean.success(topicService.getTopic(tid));
+    public RestBean<TopicDetailVO> topic(@RequestParam @Min(0) int tid,
+                                            @RequestAttribute(Const.ATTR_USER_ID) int id) {
+        return RestBean.success(topicService.getTopic(tid, id));
     }
 
     @GetMapping("/interact")
@@ -81,5 +84,23 @@ public class ForumController {
     @GetMapping("/collects")
     public RestBean<List<TopicPreviewVO>> collect(@RequestAttribute(Const.ATTR_USER_ID) int id) {
         return RestBean.success(topicService.listTopicCollects(id));
+    }
+
+    @PostMapping("/update-topic")
+    public RestBean<Void> updateTopic(@Valid @RequestBody TopicUpdateVO vo,
+                                      @RequestAttribute(Const.ATTR_USER_ID) int id) {
+        return controllerUtils.messageHandle(() -> topicService.updateTopic(id,vo));
+    }
+
+    @PostMapping("/add-comment")
+    public RestBean<Void> addComment(@Valid @RequestBody AddCommentVO vo,
+                                     @RequestAttribute(Const.ATTR_USER_ID) int id){
+        return controllerUtils.messageHandle(() -> topicService.addComment(id,vo));
+    }
+
+    @GetMapping("/comments")
+    public RestBean<List<CommentVO>> comments(@RequestBody @Min(0) int tid,
+                                              @RequestBody @Min(0) int page) {
+        return RestBean.success(topicService.comments(tid, page+1));
     }
 }

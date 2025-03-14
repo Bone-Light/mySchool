@@ -244,7 +244,7 @@ navigator.geolocation.getCurrentPosition(position => {
         </div>
       </div>
     </div>
-    <TopicEditor :show="editor" @success="onTopicCreate();" @close="editor=false"></TopicEditor>
+    <TopicEditor :show="editor" @success="onTopicCreate();" @close="editor=false" ></TopicEditor >
     <topic-collect-list :show="collects" @close="collects = false"></topic-collect-list>
   </div>
 </template>
