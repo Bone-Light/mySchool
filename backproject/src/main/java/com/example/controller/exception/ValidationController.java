@@ -16,4 +16,5 @@ public class ValidationController {
         log.warn("Resolve [{} : {}]", ex.getClass().getName(), ex.getMessage());
         return RestBean.failure(400, "请求参数有误");
     }
+
 }

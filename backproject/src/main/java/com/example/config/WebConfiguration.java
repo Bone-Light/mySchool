@@ -1,5 +1,6 @@
 package com.example.config;
 
+import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
 import com.example.Mapper.TopicMapper;
 import org.springframework.context.annotation.Bean;
@@ -21,9 +22,9 @@ public class WebConfiguration {
     }
 
     @Bean
-    public PaginationInnerInterceptor paginationInterceptor() {
-        PaginationInnerInterceptor paginationInterceptor = new PaginationInnerInterceptor();
-        paginationInterceptor.setMaxLimit(100L);
-        return paginationInterceptor;
+    public MybatisPlusInterceptor mybatisPlusInterceptor() {
+        MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
+        interceptor.addInnerInterceptor(new PaginationInnerInterceptor());
+        return interceptor;
     }
 }

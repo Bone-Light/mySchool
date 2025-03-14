@@ -8,21 +8,31 @@ import MyEditor from "@/components/MyEditor.vue";
 const props = defineProps({
   show: Boolean,
   tid: String,
-  quote: Number,
+  quote: Object,
 })
 
 const content = ref()
 const emit = defineEmits(['close', 'comment'])
+const init = ()=> content.value = new Delta();
 
 function submitComment() {
   post('api/forum/add-comment', {
     tid: props.tid,
-    quote: props.quote,
+    quote: props.quote ? props.quote.id : -1,
     content: JSON.stringify(content.value),
   }, () => {
     ElMessage.success('评论发表成功');
-    emit('close');
+    emit('comment');
   })
+}
+
+function deltaToSimpleText(delta) {
+  let str = '';
+  for(let op of JSON.parse(delta).ops) {
+    str += op.insert;
+  }
+  if(str.length > 35) str = str.substring(0, 35);
+  return str;
 }
 
 </script>
@@ -30,10 +40,12 @@ function submitComment() {
 <template>
   <div>
     <el-drawer :model-value="show"
-               title="发表评论"
+               :title="quote ? `发表对评论 ${deltaToSimpleText(quote.content)}的回复`: '发表帖子回复'"
+               @open="init"
                @close="emit('close')"
                direction="btt" :size="360"
                :close-on-click-modal="false">
+
       <div>
         <div>
           <MyEditor style="margin-top: 10px; height: 120px; border-radius: 5px"

@@ -137,6 +137,7 @@ public class TopicImpl extends ServiceImpl<TopicMapper, Topic> implements TopicS
         topicDetailVO.setInteract(interact);
         TopicDetailVO.User user =  new TopicDetailVO.User();
         topicDetailVO.setUser(this.fillUserDetailsByPrivacy(user, topic.getUid()));
+        topicDetailVO.setComments(topicCommentsMapper.selectCount(Wrappers.<TopicComment>query().eq("tid", tid)));
         return topicDetailVO;
     }
 
@@ -198,7 +199,7 @@ public class TopicImpl extends ServiceImpl<TopicMapper, Topic> implements TopicS
             BeanUtils.copyProperties(dto, vo);
             if(dto.getQuote() > 0) {
                 JSONObject object = JSONObject.parseObject(
-                        topicCommentMapper.selectOne(Wrappers.<TopicComment>query().eq("id", dto.getId())).getContent()
+                        topicCommentMapper.selectOne(Wrappers.<TopicComment>query().eq("id", dto.getQuote()).orderByAsc("time")).getContent()
                 );
                 StringBuilder builder = new StringBuilder();
                 this.shortContent(object.getJSONArray("ops"), builder, ignore->{});

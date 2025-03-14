@@ -99,8 +99,8 @@ public class ForumController {
     }
 
     @GetMapping("/comments")
-    public RestBean<List<CommentVO>> comments(@RequestBody @Min(0) int tid,
-                                              @RequestBody @Min(0) int page) {
+    public RestBean<List<CommentVO>> comments(@RequestParam @Min(0) int tid,
+                                              @RequestParam @Min(0) int page) {
         return RestBean.success(topicService.comments(tid, page+1));
     }
 }
